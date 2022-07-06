@@ -29,18 +29,18 @@ const Artists = () => {
     console.log(params.id);
   }, []);
 
-  useEffect(() => {
-    navigate(`/search/${query}`);
-  }, [artists]);
+  // useEffect(() => {
+  //   navigate(`/search/${query}`);
+  // }, [artists]);
 
   const search = async (evt) => {
     evt.preventDefault();
-    const list = await axios.get(`http://127.0.0.1:3001/artists/${encodeURI(query)}`);
+    const list = await axios.get(`/artists/${encodeURI(query)}`);
     setArtists(list.data);
   }
 
   return <>
-    <h1>Spotiwhatevers</h1>
+    <h1 className="test">Spotiwhatevers</h1>
 
     <form onSubmit={search}>
       <input onChange={(e) => setQuery(e.currentTarget.value)} value={query}></input>
