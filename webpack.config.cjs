@@ -1,3 +1,4 @@
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 
 module.exports = {
@@ -6,9 +7,10 @@ module.exports = {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist'),
   },
+  mode: 'development',
   devServer: {
     static: {
-      directory: path.join(__dirname, 'dist'),
+      directory: path.resolve(__dirname, 'dist'),
     },
     historyApiFallback: {
       index: path.resolve(__dirname, 'dist'),
@@ -17,6 +19,10 @@ module.exports = {
       overlay: false,
     },
   },
+  plugins: [new HtmlWebpackPlugin({
+    title: 'Hey!',
+    template: 'src/index.html'
+  })],
   module: {
     rules: [
       {
