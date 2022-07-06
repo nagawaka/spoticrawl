@@ -10,6 +10,9 @@ module.exports = {
     static: {
       directory: path.join(__dirname, 'dist'),
     },
+    historyApiFallback: {
+      index: path.resolve(__dirname, 'dist'),
+    },
     client: {
       overlay: false,
     },

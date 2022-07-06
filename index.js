@@ -44,9 +44,15 @@ const init = async () => {
 		handler: async (request, h) => {
 		try {
 			await grantCredentials();
-			const albums = await spotifyApi.searchArtists(`${Hoek.escapeHtml(request.params.query)}`);
-			console.log(albums);
-			return albums;
+			const artists = await spotifyApi.searchArtists(`${Hoek.escapeHtml(request.params.query)}`);
+			return artists.body.artists.items.map((artist) => ({
+        genres: artist.genres,
+        followers: artist.followers,
+        id: artist.id,
+        images: artist.images,
+        name: artist.name,
+        popularity: artist.popularity,
+			}));
 		} catch(err) {
 			console.log(err);
 		}
