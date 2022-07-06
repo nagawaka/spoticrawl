@@ -35,7 +35,7 @@ const Artists = () => {
 
   const search = async (evt) => {
     evt.preventDefault();
-    const list = await axios.get(`/artists/${encodeURI(query)}`);
+    const list = await axios.get(`/api/artists/${encodeURI(query)}`);
     setArtists(list.data);
   }
 

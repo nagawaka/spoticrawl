@@ -38,54 +38,64 @@ const init = async () => {
 		}
 	});
 
-	server.route({
-		method: 'GET',
-		path: '/artists/{query}',
-		handler: async (request, h) => {
-		try {
-			await grantCredentials();
-			const artists = await spotifyApi.searchArtists(`${Hoek.escapeHtml(request.params.query)}`);
-			return artists.body.artists.items.map((artist) => ({
-        genres: artist.genres,
-        followers: artist.followers,
-        id: artist.id,
-        images: artist.images,
-        name: artist.name,
-        popularity: artist.popularity,
-			}));
-		} catch(err) {
-			console.log(err);
-		}
-	}
-	})
-
-	server.route({
-		method: 'GET',
-		path: '/toptracks/{query}',
-		handler: async (request, h) => {
-			try {
-				await grantCredentials();
-				const topTracks = await spotifyApi.getArtistTopTracks(Hoek.escapeHtml(request.params.query), Hoek.escapeHtml(request.params.country || 'US'));
-				const trackFeatures = await spotifyApi.getAudioFeaturesForTracks(topTracks.body.tracks.map((track) => track.id));
-				const tracks = topTracks.body.tracks.map((track, key) => {
-					return {
-						key,
-						id: track.id,
-						name: track.name,
-						duration: track.duration,
-						explicit: track.explicit,
-						external_ids: track.external_ids,
-						popularity: track.popularity,
-						artists: track.artists.map((artist) => ({ name: artist.name, id: artist.id })),
-						features: trackFeatures.body.audio_features.find((element) => element.id == track.id),
-					}
-				});
-				return tracks;
-			} catch (err) {
-				console.log(err);
-			}
-		}
-	})
+  await server.register({
+    name: 'routeRegister',
+    version: '1.0.0',
+    register: (server, options) => {
+      server.route({
+        method: 'GET',
+        path: '/artists/{query}',
+        handler: async (request, h) => {
+        try {
+          await grantCredentials();
+          const artists = await spotifyApi.searchArtists(`${Hoek.escapeHtml(request.params.query)}`);
+          return artists.body.artists.items.map((artist) => ({
+            genres: artist.genres,
+            followers: artist.followers,
+            id: artist.id,
+            images: artist.images,
+            name: artist.name,
+            popularity: artist.popularity,
+          }));
+        } catch(err) {
+          console.log(err);
+        }
+      }
+      })
+    
+      server.route({
+        method: 'GET',
+        path: '/toptracks/{query}',
+        handler: async (request, h) => {
+          try {
+            await grantCredentials();
+            const topTracks = await spotifyApi.getArtistTopTracks(Hoek.escapeHtml(request.params.query), Hoek.escapeHtml(request.params.country || 'US'));
+            const trackFeatures = await spotifyApi.getAudioFeaturesForTracks(topTracks.body.tracks.map((track) => track.id));
+            const tracks = topTracks.body.tracks.map((track, key) => {
+              return {
+                key,
+                id: track.id,
+                name: track.name,
+                duration: track.duration,
+                explicit: track.explicit,
+                external_ids: track.external_ids,
+                popularity: track.popularity,
+                artists: track.artists.map((artist) => ({ name: artist.name, id: artist.id })),
+                features: trackFeatures.body.audio_features.find((element) => element.id == track.id),
+              }
+            });
+            return tracks;
+          } catch (err) {
+            console.log(err);
+          }
+        }
+      })
+    }
+  }, {
+    routes: {
+      prefix: '/api',
+    },
+  });
 
 	await server.start();
 	console.log('Server running on %s', server.info.uri);

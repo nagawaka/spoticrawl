@@ -43,13 +43,13 @@ const filters = [
 
 const Tracks = () => {
   const id = useParams().id;
-  
+
   const [tracks, setTracks] = useState([]);
   const [filter, setFilter] = useState(filters[0]);
 
   useEffect(() => {
     (async () => {
-      const data = await axios.get(`http://localhost:3001/toptracks/${id}`);
+      const data = await axios.get(`/api/toptracks/${id}`);
       setTracks(data.data);
     })();
   }, []);
