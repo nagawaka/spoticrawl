@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import axios from 'axios';
 import { get } from 'litedash';
+import Decimal from 'decimal.js';
 
 const filters = [
   {
@@ -11,26 +12,32 @@ const filters = [
   {
     key: "popularity",
     path: "popularity",
+    invert: true,
   },
   {
     key: "danceability",
     path: "features.danceability",
+    invert: true,
   },
   {
     key: "energy",
     path: "features.energy",
+    invert: true,
   },
   {
     key: "key",
     path: "features.key",
+    invert: true,
   },
   {
     key: "loudness",
     path: "features.loudness",
+    invert: true,
   },
   {
     key: "acousticness",
     path: "features.acousticness",
+    invert: true,
   },
 ]
 
@@ -46,8 +53,8 @@ const Tracks = ({ id }) => {
   }, []);
 
   useEffect(() => {
-    const filteredTracks = [...tracks].sort((a,b) => get(a, filter.path) - get(b, filter.path));
-    console.log(filteredTracks);
+    const filteredTracks = [...tracks].sort((a,b) => (new Decimal(get(a, filter.path)).comparedTo(new Decimal(get(b, filter.path)))));
+    if (filter.invert) filteredTracks.reverse();
     setTracks(filteredTracks);
   }, [filter]);
 
