@@ -1,0 +1,27 @@
+{
+  "name": "spoticrawl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nagawaka/spoticrawl.git"
+  },
+  "author": "nagawaka",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nagawaka/spoticrawl/issues"
+  },
+  "homepage": "https://github.com/nagawaka/spoticrawl#readme",
+  "dependencies": {
+    "@hapi/hapi": "^20.2.1",
+    "axios": "^0.24.0",
+    "dotenv": "^16.0.1",
+    "spotify-web-api-node": "^5.0.2"
+  }
+}
