@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import Hapi from '@hapi/hapi';
 import SpotifyWebApi from 'spotify-web-api-node';
 
 const spotifyApi = new SpotifyWebApi({
@@ -9,7 +10,15 @@ const spotifyApi = new SpotifyWebApi({
 const getArtistAlbums = async (id) => spotifyApi.getArtistAlbums(id);
 
 const init = async () => {
-	spotifyApi.setAccessToken('BQDMwqmdh8mORkq8R8DxwJ472Lou5Q4D5z7xKLGHk1SH1Vdz1dIS98lDtIkoW19odyeATNxHnrTPdmjz0XsHoYPuS9yWaDz8cLCCDAaIIqfr3FELl6g');
+	const server = Hapi.server({
+		port: process.env.PORT || 3001,
+		host: 'localhost'
+	});
+
+	server.route({
+		method: 'GET',
+		path: '/albums',
+		handler: async (request, h) => {
 	// const credentials = await spotifyApi.clientCredentialsGrant();
 	// console.log('The access token expires in ' + credentials.body['expires_in']);
 	// console.log('The access token is ' + credentials.body['access_token']);
@@ -17,8 +26,20 @@ const init = async () => {
 	// Save the access token so that it's used in future calls
 	// spotifyApi.setAccessToken(credentials.body['access_token']);
 
-	const albums = await getArtistAlbums('43ZHCT0cAZBISjO8DG9PnE');
-	console.log(albums);
+			const albums = await getArtistAlbums('43ZHCT0cAZBISjO8DG9PnE');
+			console.log(albums);
+			return albums;
+		}
+	})
+
+	await server.start();
+	spotifyApi.setAccessToken(process.env.FETCHY_ACCESS_TOKEN);
+	console.log('Server running on %s', server.info.uri);
 }
+
+process.on('unhandledRejection', (err) => {
+	console.log(err);
+	process.exit(1);
+});
 
 init();
