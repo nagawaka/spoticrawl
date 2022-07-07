@@ -5,16 +5,17 @@ import axios from 'axios';
 const ArtistList = ({ artists }) => (
   <>
     <h2>Results</h2>
-    <ul>
+
+    <div>
       {artists.map((artist) => (
-        <li key={artist.id}>
+        <div className="w-1/4" key={artist.id}>
           <Link to={`/tracks/${artist.id}`}><img src={artist.images[0]?.url} />
           <p>{artist.name}<br/>
           {artist.popularity}</p>
           </Link>
-        </li>
-      ))}
-    </ul>
+        </div>
+      ))}      
+    </div>
   </>
 )
 
@@ -22,20 +23,17 @@ const Artists = () => {
   const params = useParams();
   const navigate = useNavigate();
 
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(params.id || '');
   const [artists, setArtists] = useState([]);
 
   useEffect(() => {
-    console.log(params.id);
-  }, []);
-
-  // useEffect(() => {
-  //   navigate(`/search/${query}`);
-  // }, [artists]);
+    if (query !== '') search(new Event(''));
+  }, [params.id]);
 
   const search = async (evt) => {
     evt.preventDefault();
     const list = await axios.get(`/api/artists/${encodeURI(query)}`);
+    await navigate(`/search/${query}`);
     setArtists(list.data);
   }
 

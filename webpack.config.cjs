@@ -1,3 +1,4 @@
+require('dotenv').config();
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 
@@ -17,6 +18,17 @@ module.exports = {
     },
     client: {
       overlay: false,
+    },
+    proxy: {
+      '/api': 'http://localhost:3001',
+      '/search': {
+        target: 'http://localhost:8080',
+        pathRewrite: { '^/search.*': '' },
+      },
+      '/tracks': {
+        target: 'http://localhost:8080',
+        pathRewrite: { '^/tracks.*': '' },
+      },
     },
   },
   plugins: [new HtmlWebpackPlugin({
