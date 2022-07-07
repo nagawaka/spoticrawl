@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -24,20 +24,34 @@ const ArtistList = ({ artists }) => (
 )
 
 const Artists = () => {
+  const inputTextElement = useRef(null);
   const params = useParams();
   const navigate = useNavigate();
 
+  const [doSearch, setSearch] = useState(true);
   const [query, setQuery] = useState(params.id || '');
   const [artists, setArtists] = useState([]);
 
   useEffect(() => {
-    if (query !== '') search(new Event(''));
+    (async () => {
+      await navigate(`/search/${inputTextElement.current.value}`);
+    })();
+  }, [artists]);
+
+  useEffect(() => {
+    console.log(query, params.id);
+    setSearch(true);
+    setQuery(params.id)
   }, [params.id]);
+
+  useEffect(() => {
+    if (doSearch) search(new Event(''));
+  }, [doSearch]);
 
   const search = async (evt) => {
     evt.preventDefault();
-    const list = await axios.get(`/api/artists/${encodeURI(query)}`);
-    await navigate(`/search/${query}`);
+    const list = await axios.get(`/api/artists/${encodeURI(inputTextElement.current.value)}`);
+    setSearch(false);
     setArtists(list.data);
   }
 
@@ -45,7 +59,7 @@ const Artists = () => {
     <h1 className="test">Spotiwhatevers</h1>
 
     <form onSubmit={search}>
-      <input onChange={(e) => setQuery(e.currentTarget.value)} value={query}></input>
+      <input onChange={(e) => setQuery(e.currentTarget.value)} ref={inputTextElement} value={query}></input>
       <button>Search</button>
     </form>
 
