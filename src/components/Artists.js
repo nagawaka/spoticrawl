@@ -3,20 +3,24 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const ArtistList = ({ artists }) => (
-  <>
+  <div className="container mx-auto">
     <h2>Results</h2>
 
-    <div>
+    <div className="columns-4">
       {artists.map((artist) => (
-        <div className="w-1/4" key={artist.id}>
-          <Link to={`/tracks/${artist.id}`}><img src={artist.images[0]?.url} />
-          <p>{artist.name}<br/>
-          {artist.popularity}</p>
-          </Link>
-        </div>
+        <Link to={`/tracks/${artist.id}`} key={artist.id}>
+          <div className="flex flex-col">
+            <div>
+              <img src={artist.images[0]?.url} className="" />
+            </div>
+            <div>
+              <p>{artist.name} ({artist.followers.total})</p>
+            </div>
+          </div>
+        </Link>
       ))}      
     </div>
-  </>
+  </div>
 )
 
 const Artists = () => {
