@@ -79,25 +79,62 @@ const Tracks = () => {
       .call(d3.axisBottom(x));
 
     var y = d3.scaleLinear()
-      .domain([0, d3.max(tracks.map(track => get(track, 'popularity')))])
+      .domain([d3.min(tracks.map(track => get(track, 'popularity'))), d3.max(tracks.map(track => get(track, 'popularity')))])
       .range([ height, 0]);
     svg.append("g")
       .call(d3.axisLeft(y));
+
+    var z = d3.scaleLinear()
+      .domain([d3.min(tracks.map(track => get(track, 'popularity'))), d3.max(tracks.map(track => get(track, 'popularity')))])
+      .range([ 1, 40]);  
+
+    const Tooltip = d3.select('#my_dataviz')
+      .append("div")
+      .style("opacity", 0)
+      .attr("class", "absolute")
+      .style("background-color", "white")
+      .style("border", "solid")
+      .style("border-width", "2px")
+      .style("border-radius", "5px")
+      .style("padding", "5px")
     
-    svg.append('g')
+    var mouseover = function(d, e) {
+      Tooltip
+        .style("opacity", 1)
+        .html(e.name)
+      d3.select(this)
+        .style("stroke", "black")
+        .style("opacity", 1)
+    }
+    var mousemove = function(d) {
+      Tooltip
+        .style("left", (d3.select(this).attr('cx')) + "px")
+        .style("top", (d3.select(this).attr('cy')) + "px")
+    }
+    var mouseleave = function(d) {
+      Tooltip
+        .style("opacity", 0)
+      d3.select(this)
+        .style("stroke", "none")
+        .style("opacity", 0.8)
+    }
+
+    svg//.append('g')
       .selectAll("dot")
       .data(tracks)
       .enter()
       .append("circle")
         .attr("cx", function (d) {
-          console.log(get(d, filter.path));
           return x(get(d, filter.path));
         } )
         .attr("cy", function (d) { 
           return y(get(d, 'popularity'));
         } )
-        .attr("r", 10)
+        .attr("r", function (d) { return z(get(d, 'popularity')); } )
         .style("fill", "#69b3a2")
+        .on("mouseover", mouseover)
+        .on("mousemove", mousemove)
+        .on("mouseout", mouseleave);
 
   }, [values])
 
@@ -118,7 +155,9 @@ const Tracks = () => {
         <p>{track.name} by <strong>{track.artists.map((artist) => artist.name).join(', ')}</strong> ({get(track, filter.path)})</p>
       </li>)}
     </ol>
-    <svg width="100%" height={400}></svg>
+    <div id="my_dataviz" className="relative">
+      <svg width="100%" height={400}></svg>
+    </div>
   </>;
 }
 
