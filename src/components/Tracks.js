@@ -63,30 +63,31 @@ const Tracks = () => {
   }, [filter]);
 
   useEffect(() => {
-    const width = window.innerWidth - 40 - 30;
+    const width = window.innerWidth - 200;
     const height = 400 - 40;
-
-    const comparison = tracks.map((track) => get(track, 'popularity'));
 
     d3.select('svg').selectAll('*').remove();
 
+    const valsX = tracks.map(track => get(track, filter.path));
+    const valsPop = tracks.map(track => get(track, 'popularity'));
+
     const svg = d3.select('svg').append('g').attr('transform', 'translate(40,10)');
     const x = d3.scaleLinear()
-      .domain([d3.min(values), d3.max(values)])     // can use this instead of 1000 to have the max of data: d3.max(data, function(d) { return +d.price })
+      .domain([d3.min(valsX), d3.max(valsX)])     // can use this instead of 1000 to have the max of data: d3.max(data, function(d) { return +d.price })
       .range([0, width]);
     svg.append("g")
       .attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(x));
 
     var y = d3.scaleLinear()
-      .domain([d3.min(tracks.map(track => get(track, 'popularity'))), d3.max(tracks.map(track => get(track, 'popularity')))])
+      .domain([d3.min(valsPop), d3.max(valsPop)])
       .range([ height, 0]);
     svg.append("g")
       .call(d3.axisLeft(y));
 
     var z = d3.scaleLinear()
-      .domain([d3.min(tracks.map(track => get(track, 'popularity'))), d3.max(tracks.map(track => get(track, 'popularity')))])
-      .range([ 1, 40]);  
+      .domain([d3.min(valsPop), d3.max(valsPop)])
+      .range([ 20, 40]);  
 
     const Tooltip = d3.select('#my_dataviz')
       .append("div")
@@ -102,9 +103,9 @@ const Tracks = () => {
       Tooltip
         .style("opacity", 1)
         .html(e.name)
-      d3.select(this)
-        .style("stroke", "black")
-        .style("opacity", 1)
+      // d3.select(this)
+      //   .style("stroke", "black")
+      //   .style("opacity", 1)
     }
     var mousemove = function(d) {
       Tooltip
@@ -114,9 +115,9 @@ const Tracks = () => {
     var mouseleave = function(d) {
       Tooltip
         .style("opacity", 0)
-      d3.select(this)
-        .style("stroke", "none")
-        .style("opacity", 0.8)
+      // d3.select(this)
+      //   .style("stroke", "none")
+      //   .style("opacity", 0.8)
     }
 
     svg//.append('g')
@@ -132,6 +133,9 @@ const Tracks = () => {
         } )
         .attr("r", function (d) { return z(get(d, 'popularity')); } )
         .style("fill", "#69b3a2")
+        .style("opacity", "0.5")
+          .style("stroke", "black")
+        .style("opacity", 1)
         .on("mouseover", mouseover)
         .on("mousemove", mousemove)
         .on("mouseout", mouseleave);

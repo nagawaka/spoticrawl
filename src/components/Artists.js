@@ -9,9 +9,9 @@ const ArtistList = ({ artists }) => (
     <div className="columns-4">
       {artists.map((artist) => (
         <Link to={`/tracks/${artist.id}`} key={artist.id}>
-          <div className="flex flex-col">
+          <div className="flex flex-col hover:opacity-75">
             <div>
-              <img src={artist.images[0]?.url} className="" />
+            {artist.images[0] ? <img src={artist.images[0]?.url} className="w-full" /> : <div className="h-64 w-full" style={{backgroundColor: `#${Math.floor(Math.random()*16777215).toString(16)}`}}>{artist.name}</div>}
             </div>
             <div>
               <p>{artist.name} ({artist.followers.total})</p>
@@ -56,12 +56,12 @@ const Artists = () => {
   }
 
   return <>
-    <h1 className="test">Spotiwhatevers</h1>
-
-    <form onSubmit={search}>
-      <input onChange={(e) => setQuery(e.currentTarget.value)} ref={inputTextElement} value={query}></input>
-      <button>Search</button>
-    </form>
+    <div className="mb-4">
+      <form onSubmit={search}>
+        <input onChange={(e) => setQuery(e.currentTarget.value)} ref={inputTextElement} value={query} className="border-solid border-y-2 border-l-2 border-black p-4"></input>
+        <button className="border-solid border-y-2 border-r-2 border-black p-4">Search</button>
+      </form>
+    </div>
 
     {artists.length > 0 && <ArtistList artists={artists} />}
   </>;
