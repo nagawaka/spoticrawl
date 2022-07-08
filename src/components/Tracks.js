@@ -92,7 +92,7 @@ const Tracks = () => {
     const Tooltip = d3.select('#my_dataviz')
       .append("div")
       .style("opacity", 0)
-      .attr("class", "absolute")
+      .attr("class", "absolute pointer-events-none")
       .style("background-color", "white")
       .style("border", "solid")
       .style("border-width", "2px")
