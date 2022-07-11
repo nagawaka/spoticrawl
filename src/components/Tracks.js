@@ -58,7 +58,7 @@ const Tracks = () => {
 
   useEffect(() => {
     (async () => {
-      const data = await axios.get(`/api/toptracks/${id}`);
+      const data = await axios.get(`/api/tracks/${id}`);
       setTracks([...data.data.map(d => ({ ...d, release_date: d3.timeParse("%Y-%m-%d")(d.release_date)}))]);
     })();
   }, []);
