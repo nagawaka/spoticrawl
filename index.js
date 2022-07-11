@@ -72,6 +72,7 @@ const init = async () => {
             const topTracks = await spotifyApi.getArtistTopTracks(Hoek.escapeHtml(request.params.query), Hoek.escapeHtml(request.params.country || 'US'));
             const trackFeatures = await spotifyApi.getAudioFeaturesForTracks(topTracks.body.tracks.map((track) => track.id));
             const tracks = topTracks.body.tracks.map((track, key) => {
+              console.log(track.album.release_date, track.album.release_date_precision);
               return {
                 key,
                 id: track.id,
@@ -82,6 +83,7 @@ const init = async () => {
                 popularity: track.popularity,
                 artists: track.artists.map((artist) => ({ name: artist.name, id: artist.id })),
                 features: trackFeatures.body.audio_features.find((element) => element.id == track.id),
+                release_date: track.album.release_date_precision !== 'day' ? `${track.album.release_date.split('-')[0]}-01-01` : track.album.release_date,
               }
             });
             return tracks;

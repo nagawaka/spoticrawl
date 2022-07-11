@@ -36,6 +36,11 @@ const filters = [
     invert: true,
   },
   {
+    key: "valence",
+    path: "features.valence",
+    invert: true,
+  },
+  {
     key: "acousticness",
     path: "features.acousticness",
     invert: true,
@@ -53,7 +58,7 @@ const Tracks = () => {
   useEffect(() => {
     (async () => {
       const data = await axios.get(`/api/toptracks/${id}`);
-      setTracks(data.data);
+      setTracks([...data.data.map(d => ({ ...d, release_date: d3.timeParse("%Y-%m-%d")(d.release_date)}))]);
     })();
   }, []);
 
@@ -68,26 +73,39 @@ const Tracks = () => {
 
     d3.select('svg').selectAll('*').remove();
 
-    const valsX = tracks.map(track => get(track, filter.path));
-    const valsPop = tracks.map(track => get(track, 'popularity'));
+    const filteredValues = tracks.map(track => get(track, filter.path));
+    const popularityValues = tracks.map(track => get(track, 'popularity'));
 
     const svg = d3.select('svg').append('g').attr('transform', 'translate(40,10)');
-    const x = d3.scaleLinear()
-      .domain([d3.min(valsX), d3.max(valsX)])     // can use this instead of 1000 to have the max of data: d3.max(data, function(d) { return +d.price })
+    const x = d3.scaleTime()
+      .domain(d3.extent(tracks, d => d.release_date))     // can use this instead of 1000 to have the max of data: d3.max(data, function(d) { return +d.price })
       .range([0, width]);
     svg.append("g")
       .attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(x));
 
+    
     var y = d3.scaleLinear()
-      .domain([d3.min(valsPop), d3.max(valsPop)])
+      .domain([d3.min(filteredValues), d3.max(filteredValues)])
       .range([ height, 0]);
     svg.append("g")
       .call(d3.axisLeft(y));
 
+    // popularity
     var z = d3.scaleLinear()
-      .domain([d3.min(valsPop), d3.max(valsPop)])
-      .range([ 20, 40]);  
+      .domain([d3.min(popularityValues), d3.max(popularityValues)])
+      .range([ 15, 60 ]);  
+
+    svg.append("path")
+      .datum(tracks)
+      .attr("fill", "none")
+      .attr("stroke", "black")
+      .attr("stroke-width", 1.5)
+      .attr("d", d3.line()
+        // .curve(d3.curveBasis) // Just add that to have a curve instead of segments
+        .x(function(d) { return x(get(d, 'release_date')) })
+        .y(function(d) { return y(get(d, filter.path)) })
+        )
 
     const Tooltip = d3.select('#my_dataviz')
       .append("div")
@@ -126,10 +144,10 @@ const Tracks = () => {
       .enter()
       .append("circle")
         .attr("cx", function (d) {
-          return x(get(d, filter.path));
+          return x(get(d, 'release_date'));
         } )
         .attr("cy", function (d) { 
-          return y(get(d, 'popularity'));
+          return y(get(d, filter.path));
         } )
         .attr("r", function (d) { return z(get(d, 'popularity')); } )
         .style("fill", "#69b3a2")
