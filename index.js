@@ -32,6 +32,7 @@ const grantCredentials = async () => {
 }
 
 const getData = async (action, query, options) => {
+  if (action == 'getAudioFeaturesForTracks') console.log(action, query, options);
   await grantCredentials();
   return spotifyApi[action](query, options);
 }
@@ -54,9 +55,9 @@ const getData = async (action, query, options) => {
         path: '/artists/{query}',
         handler: async (request, h) => {
         try {
-          await grantCredentials();
-          const artists = await spotifyApi.searchArtists(`${Hoek.escapeHtml(request.params.query)}`);
-          return artists.body.artists.items.map((artist) => ({
+          const artists = await getData('searchArtists', Hoek.escapeHtml(request.params.query), { limit: 50 });
+          return artists.body.artists.items
+            .map((artist) => ({
             genres: artist.genres,
             followers: artist.followers,
             id: artist.id,
@@ -81,7 +82,12 @@ const getData = async (action, query, options) => {
             const tracks = topTracks.body.tracks.map((track, key) => {
               console.log(track.album.release_date, track.album.release_date_precision);
               return {
-                album: track.album,
+                album: {
+                  name: track.album.name,
+                  id: track.album.id,
+                  release_date: track.album.release_date,
+                  release_date_precision: track.album.release_date_precision,
+                },
                 key,
                 id: track.id,
                 name: track.name,
@@ -111,11 +117,18 @@ const getData = async (action, query, options) => {
             const albumDetails = await loader(getData, albums
               .flatMap((obj) => obj.body.items)
               .reduce((prev, curr) => [...prev, curr], [])
-              .map(album => album.id), { limit: 50, action: 'getAlbums' });
+              .map(album => album.id),
+              { limit: 20, action: 'getAlbums' });
 
             const tracks = albumDetails
-            .flatMap((obj) => obj.body.albums)
-            .flatMap((obj) => obj.tracks.items);
+              .flatMap(obj => obj.body.albums)
+              .flatMap(obj => obj.tracks.items.map(track => ({
+                ...track, album: {
+                name: obj.name,
+                id: obj.id,
+                release_date: obj.release_date,
+                release_date_precision: obj.release_date_precision,
+              } })));
 
             const filteredTracks = tracks.map(
               track => ({
@@ -124,7 +137,10 @@ const getData = async (action, query, options) => {
               })
             ).filter( f => f.artists.length > 0);
 
-            console.log(tracks.length, filteredTracks.length)
+            await grantCredentials();
+            // const trackFeatures = await spotifyApi.getAudioFeaturesForTracks();
+            const trackDetails = await loader(getData, filteredTracks.map(track => track.id), { limit: 100, action: 'getAudioFeaturesForTracks' });
+            console.log(trackDetails);
             
             return filteredTracks;
 
