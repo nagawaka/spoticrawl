@@ -14,6 +14,7 @@ const filters = [
     key: "popularity",
     path: "popularity",
     invert: true,
+    minMax: [0,100],
   },
   {
     key: "danceability",
@@ -63,15 +64,21 @@ const Tracks = () => {
   }, []);
 
   useEffect(() => {
+    console.log(tracks);
+  }, [tracks]);
+
+  useEffect(() => {
     const arr = [...tracks.map((track) => get(track, filter.path))];
     setValues(arr);
   }, [filter]);
 
   useEffect(() => {
-    const width = window.innerWidth - 200;
-    const height = 400 - 40;
+    const margin = { top: 10, right: 30, bottom: 30, left: 60 };
+    const width = document.querySelector('#my_dataviz').clientWidth - margin.left - margin.right;
+    const height = 640 - margin.top - margin.bottom;
 
     d3.select('svg').selectAll('*').remove();
+    d3.select('.tooltip').selectAll('*').remove();
 
     const filteredValues = tracks.map(track => get(track, filter.path));
     const popularityValues = tracks.map(track => get(track, 'popularity'));
@@ -86,31 +93,20 @@ const Tracks = () => {
 
     
     var y = d3.scaleLinear()
-      .domain([d3.min(filteredValues), d3.max(filteredValues)])
+      .domain(filter.minMax || [d3.min(filteredValues), d3.max(filteredValues)])
       .range([ height, 0]);
     svg.append("g")
       .call(d3.axisLeft(y));
 
     // popularity
-    var z = d3.scaleLinear()
-      .domain([d3.min(popularityValues), d3.max(popularityValues)])
-      .range([ 15, 60 ]);  
-
-    svg.append("path")
-      .datum(tracks)
-      .attr("fill", "none")
-      .attr("stroke", "black")
-      .attr("stroke-width", 1.5)
-      .attr("d", d3.line()
-        // .curve(d3.curveBasis) // Just add that to have a curve instead of segments
-        .x(function(d) { return x(get(d, 'release_date')) })
-        .y(function(d) { return y(get(d, filter.path)) })
-        )
+    // var z = d3.scaleLinear()
+    //   .domain([d3.min(popularityValues), d3.max(popularityValues)])
+    //   .range([ 15, 60 ]);  
 
     const Tooltip = d3.select('#my_dataviz')
       .append("div")
       .style("opacity", 0)
-      .attr("class", "absolute pointer-events-none")
+      .attr("class", "absolute pointer-events-none tooltip")
       .style("background-color", "white")
       .style("border", "solid")
       .style("border-width", "2px")
@@ -149,11 +145,10 @@ const Tracks = () => {
         .attr("cy", function (d) { 
           return y(get(d, filter.path));
         } )
-        .attr("r", function (d) { return z(get(d, 'popularity')); } )
+        .attr('r', 10)
         .style("fill", "#69b3a2")
         .style("opacity", "0.5")
-          .style("stroke", "black")
-        .style("opacity", 1)
+        .style("stroke", "black")
         .on("mouseover", mouseover)
         .on("mousemove", mousemove)
         .on("mouseout", mouseleave);
@@ -174,11 +169,11 @@ const Tracks = () => {
     </ul>
     <ol>
       {tracks.map((track) => <li key={track.id}>
-        <p>{track.name} by <strong>{track.artists.map((artist) => artist.name).join(', ')}</strong> ({get(track, filter.path)})</p>
+        <p>{track.name} from <strong>{track.album.name}</strong> ({get(track, filter.path)})</p>
       </li>)}
     </ol>
     <div id="my_dataviz" className="relative">
-      <svg width="100%" height={400}></svg>
+      <svg width="100%" height={640}></svg>
     </div>
   </>;
 }

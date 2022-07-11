@@ -4,6 +4,8 @@ import Hoek from '@hapi/hoek';
 
 import SpotifyWebApi from 'spotify-web-api-node';
 
+import loader from './loader.js';
+
 let lastDate = null;
 let expires = 0;
 
@@ -29,7 +31,7 @@ const grantCredentials = async () => {
 	spotifyApi.setAccessToken(credentials.body['access_token']);
 }
 
-const init = async () => {
+(async () => {
 	const server = Hapi.server({
 		port: process.env.PORT || 3001,
 		host: 'localhost',
@@ -74,6 +76,7 @@ const init = async () => {
             const tracks = topTracks.body.tracks.map((track, key) => {
               console.log(track.album.release_date, track.album.release_date_precision);
               return {
+                album: track.album,
                 key,
                 id: track.id,
                 name: track.name,
@@ -92,6 +95,49 @@ const init = async () => {
           }
         }
       })
+
+      server.route({
+        method: 'GET',
+        path: '/tracks/{query}',
+        handler: async (request, h) => {
+          try {
+            const f = async (action, query, options) => {
+              await grantCredentials();
+              return spotifyApi[action](query, options);
+            }
+            const albums = await loader(f, Hoek.escapeHtml(request.params.query), { limit: 50 });
+
+            const albumDetails = await loader(f, albums
+              .flatMap((obj) => obj.body.items)
+              .reduce((prev, curr) => [...prev, curr], [])
+              .map(album => album.id), { limit: 50, action: 'getAlbums' });
+            
+            console.log(albumDetails.flatMap((obj) => obj.body.albums));
+            return albumDetails;
+
+            // const trackFeatures = await spotifyApi.getAudioFeaturesForTracks(topTracks.body.tracks.map((track) => track.id));
+            // const tracks = topTracks.body.tracks.map((track, key) => {
+            //   console.log(track.album.release_date, track.album.release_date_precision);
+            //   return {
+            //     album: track.album,
+            //     key,
+            //     id: track.id,
+            //     name: track.name,
+            //     duration: track.duration,
+            //     explicit: track.explicit,
+            //     external_ids: track.external_ids,
+            //     popularity: track.popularity,
+            //     artists: track.artists.map((artist) => ({ name: artist.name, id: artist.id })),
+            //     features: trackFeatures.body.audio_features.find((element) => element.id == track.id),
+            //     release_date: track.album.release_date_precision !== 'day' ? `${track.album.release_date.split('-')[0]}-01-01` : track.album.release_date,
+            //   }
+            // });
+            return tracks;
+          } catch (err) {
+            console.log(err);
+          }
+        }
+      })
     }
   }, {
     routes: {
@@ -101,11 +147,10 @@ const init = async () => {
 
 	await server.start();
 	console.log('Server running on %s', server.info.uri);
-}
+})();
 
 process.on('unhandledRejection', (err) => {
 	console.log(err);
 	process.exit(1);
 });
 
-init();
