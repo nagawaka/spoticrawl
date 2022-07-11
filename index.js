@@ -31,6 +31,11 @@ const grantCredentials = async () => {
 	spotifyApi.setAccessToken(credentials.body['access_token']);
 }
 
+const getData = async (action, query, options) => {
+  await grantCredentials();
+  return spotifyApi[action](query, options);
+}
+
 (async () => {
 	const server = Hapi.server({
 		port: process.env.PORT || 3001,
@@ -101,19 +106,27 @@ const grantCredentials = async () => {
         path: '/tracks/{query}',
         handler: async (request, h) => {
           try {
-            const f = async (action, query, options) => {
-              await grantCredentials();
-              return spotifyApi[action](query, options);
-            }
-            const albums = await loader(f, Hoek.escapeHtml(request.params.query), { limit: 50 });
+            const albums = await loader(getData, Hoek.escapeHtml(request.params.query), { limit: 50 });
 
-            const albumDetails = await loader(f, albums
+            const albumDetails = await loader(getData, albums
               .flatMap((obj) => obj.body.items)
               .reduce((prev, curr) => [...prev, curr], [])
               .map(album => album.id), { limit: 50, action: 'getAlbums' });
+
+            const tracks = albumDetails
+            .flatMap((obj) => obj.body.albums)
+            .flatMap((obj) => obj.tracks.items);
+
+            const filteredTracks = tracks.map(
+              track => ({
+                ...track,
+                artists: track.artists.filter(artist => artist.id === request.params.query)
+              })
+            ).filter( f => f.artists.length > 0);
+
+            console.log(tracks.length, filteredTracks.length)
             
-            console.log(albumDetails.flatMap((obj) => obj.body.albums));
-            return albumDetails;
+            return filteredTracks;
 
             // const trackFeatures = await spotifyApi.getAudioFeaturesForTracks(topTracks.body.tracks.map((track) => track.id));
             // const tracks = topTracks.body.tracks.map((track, key) => {
